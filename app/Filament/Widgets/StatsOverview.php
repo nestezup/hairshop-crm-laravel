@@ -13,6 +13,8 @@ class StatsOverview extends BaseWidget
 {
     protected static ?int $sort = 1;
 
+    protected static ?string $pollingInterval = '30s';
+
     protected function getStats(): array
     {
         $today = Carbon::today();
@@ -27,37 +29,31 @@ class StatsOverview extends BaseWidget
             ->sum('price');
 
         $todayTreatments = Treatment::whereDate('treatment_date', $today)->count();
-        $monthTreatments = Treatment::where('treatment_date', '>=', $thisMonth)->count();
+        $todayCompleted = Treatment::where('status', 'completed')
+            ->whereDate('treatment_date', $today)
+            ->count();
 
         $totalCustomers = Customer::count();
-        $newCustomersThisMonth = Customer::where('created_at', '>=', $thisMonth)->count();
-
-        $activeDesigners = Designer::where('is_active', true)->count();
 
         return [
-            Stat::make('오늘 매출', number_format($todayRevenue) . '원')
-                ->description('오늘 완료된 시술')
-                ->descriptionIcon('heroicon-m-currency-dollar')
+            Stat::make('오늘 매출', '₩' . number_format($todayRevenue))
+                ->description($todayCompleted . '건 완료')
+                ->descriptionIcon('heroicon-m-check-circle')
                 ->color('success'),
 
-            Stat::make('이번 달 매출', number_format($monthRevenue) . '원')
-                ->description($monthTreatments . '건 시술')
-                ->descriptionIcon('heroicon-m-arrow-trending-up')
+            Stat::make('이번 달 매출', '₩' . number_format($monthRevenue))
+                ->description(date('n') . '월 누적')
+                ->descriptionIcon('heroicon-m-calendar')
                 ->color('primary'),
 
-            Stat::make('오늘 시술 건수', $todayTreatments . '건')
+            Stat::make('오늘 시술', $todayTreatments . '건')
                 ->description('예약 포함')
-                ->descriptionIcon('heroicon-m-clipboard-document-check')
+                ->descriptionIcon('heroicon-m-scissors')
                 ->color('warning'),
 
-            Stat::make('총 고객 수', number_format($totalCustomers) . '명')
-                ->description('이번 달 신규 ' . $newCustomersThisMonth . '명')
+            Stat::make('전체 고객', number_format($totalCustomers) . '명')
+                ->description('등록된 고객')
                 ->descriptionIcon('heroicon-m-users')
-                ->color('info'),
-
-            Stat::make('활성 디자이너', $activeDesigners . '명')
-                ->description('현재 근무 중')
-                ->descriptionIcon('heroicon-m-scissors')
                 ->color('gray'),
         ];
     }

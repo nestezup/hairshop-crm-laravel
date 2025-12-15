@@ -73,14 +73,28 @@ class DatabaseSeeder extends Seeder
             Customer::create($customer);
         }
 
-        // 최근 2주간 시술 내역 생성
-        $statuses = ['completed', 'completed', 'completed', 'reserved'];
         $allServices = Service::all();
         $allDesigners = Designer::all();
         $allCustomers = Customer::all();
 
-        for ($i = 0; $i < 50; $i++) {
-            $treatmentDate = Carbon::now()->subDays(rand(0, 14))->setHour(rand(10, 19))->setMinute(rand(0, 59));
+        // 오늘 시술 내역 생성 (5-10건)
+        for ($i = 0; $i < rand(5, 10); $i++) {
+            $service = $allServices->random();
+            $hour = rand(9, 17);
+
+            Treatment::create([
+                'customer_id' => $allCustomers->random()->id,
+                'designer_id' => $allDesigners->random()->id,
+                'service_id' => $service->id,
+                'treatment_date' => Carbon::today()->setHour($hour)->setMinute(rand(0, 59)),
+                'price' => $service->price,
+                'status' => $hour < Carbon::now()->hour ? 'completed' : 'reserved',
+            ]);
+        }
+
+        // 최근 2주간 시술 내역 생성
+        for ($i = 0; $i < 40; $i++) {
+            $treatmentDate = Carbon::now()->subDays(rand(1, 14))->setHour(rand(10, 19))->setMinute(rand(0, 59));
             $service = $allServices->random();
 
             Treatment::create([
@@ -89,7 +103,7 @@ class DatabaseSeeder extends Seeder
                 'service_id' => $service->id,
                 'treatment_date' => $treatmentDate,
                 'price' => $service->price,
-                'status' => $treatmentDate->isFuture() ? 'reserved' : $statuses[array_rand($statuses)],
+                'status' => 'completed',
             ]);
         }
     }
