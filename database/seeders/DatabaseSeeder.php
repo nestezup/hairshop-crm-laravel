@@ -77,10 +77,13 @@ class DatabaseSeeder extends Seeder
         $allDesigners = Designer::all();
         $allCustomers = Customer::all();
 
-        // 오늘 시술 내역 생성 (5-10건)
-        for ($i = 0; $i < rand(5, 10); $i++) {
+        // 오늘 시술 내역 생성 - 다양한 상태
+        $currentHour = Carbon::now()->hour;
+
+        // 완료된 시술 (과거 시간)
+        for ($i = 0; $i < 5; $i++) {
             $service = $allServices->random();
-            $hour = rand(9, 17);
+            $hour = rand(9, max(9, $currentHour - 1));
 
             Treatment::create([
                 'customer_id' => $allCustomers->random()->id,
@@ -88,7 +91,48 @@ class DatabaseSeeder extends Seeder
                 'service_id' => $service->id,
                 'treatment_date' => Carbon::today()->setHour($hour)->setMinute(rand(0, 59)),
                 'price' => $service->price,
-                'status' => $hour < Carbon::now()->hour ? 'completed' : 'reserved',
+                'status' => 'completed',
+            ]);
+        }
+
+        // 현재 시술중
+        for ($i = 0; $i < 2; $i++) {
+            $service = $allServices->random();
+            Treatment::create([
+                'customer_id' => $allCustomers->random()->id,
+                'designer_id' => $allDesigners->random()->id,
+                'service_id' => $service->id,
+                'treatment_date' => Carbon::now()->subMinutes(rand(10, 30)),
+                'price' => $service->price,
+                'status' => 'in_progress',
+            ]);
+        }
+
+        // 대기중
+        for ($i = 0; $i < 2; $i++) {
+            $service = $allServices->random();
+            Treatment::create([
+                'customer_id' => $allCustomers->random()->id,
+                'designer_id' => $allDesigners->random()->id,
+                'service_id' => $service->id,
+                'treatment_date' => Carbon::now(),
+                'price' => $service->price,
+                'status' => 'waiting',
+            ]);
+        }
+
+        // 예약 (미래 시간)
+        for ($i = 0; $i < 3; $i++) {
+            $service = $allServices->random();
+            $hour = rand(max($currentHour + 1, 14), 19);
+
+            Treatment::create([
+                'customer_id' => $allCustomers->random()->id,
+                'designer_id' => $allDesigners->random()->id,
+                'service_id' => $service->id,
+                'treatment_date' => Carbon::today()->setHour($hour)->setMinute(0),
+                'price' => $service->price,
+                'status' => 'reserved',
             ]);
         }
 

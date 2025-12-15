@@ -82,10 +82,12 @@ class TreatmentResource extends Resource
                             ->label('상태')
                             ->options([
                                 'reserved' => '예약',
+                                'waiting' => '대기',
+                                'in_progress' => '시술중',
                                 'completed' => '완료',
                                 'cancelled' => '취소',
                             ])
-                            ->default('completed')
+                            ->default('in_progress')
                             ->required(),
                     ])->columns(2),
                 Forms\Components\Section::make('메모')
@@ -126,12 +128,16 @@ class TreatmentResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'reserved' => '예약',
+                        'waiting' => '대기',
+                        'in_progress' => '시술중',
                         'completed' => '완료',
                         'cancelled' => '취소',
                         default => $state,
                     })
                     ->color(fn (string $state): string => match ($state) {
-                        'reserved' => 'warning',
+                        'reserved' => 'info',
+                        'waiting' => 'warning',
+                        'in_progress' => 'orange',
                         'completed' => 'success',
                         'cancelled' => 'danger',
                         default => 'gray',
@@ -146,6 +152,8 @@ class TreatmentResource extends Resource
                     ->label('상태')
                     ->options([
                         'reserved' => '예약',
+                        'waiting' => '대기',
+                        'in_progress' => '시술중',
                         'completed' => '완료',
                         'cancelled' => '취소',
                     ]),

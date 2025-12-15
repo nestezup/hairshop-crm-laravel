@@ -19,7 +19,7 @@ return new class extends Migration
             $table->datetime('treatment_date');
             $table->decimal('price', 10, 0)->default(0);
             $table->text('memo')->nullable();
-            $table->enum('status', ['reserved', 'completed', 'cancelled'])->default('reserved');
+            $table->enum('status', ['reserved', 'waiting', 'in_progress', 'completed', 'cancelled'])->default('reserved');
             $table->timestamps();
         });
     }

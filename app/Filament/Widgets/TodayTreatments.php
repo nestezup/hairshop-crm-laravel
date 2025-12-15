@@ -10,7 +10,7 @@ use Illuminate\Support\Carbon;
 
 class TodayTreatments extends BaseWidget
 {
-    protected static ?string $heading = '오늘 시술 내역';
+    protected static ?string $heading = '오늘 시술 현황';
 
     protected static ?int $sort = 3;
 
@@ -50,36 +50,54 @@ class TodayTreatments extends BaseWidget
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'reserved' => '예약',
+                        'waiting' => '대기',
+                        'in_progress' => '시술중',
                         'completed' => '완료',
                         'cancelled' => '취소',
                         default => $state,
                     })
                     ->color(fn (string $state): string => match ($state) {
-                        'reserved' => 'warning',
+                        'reserved' => 'info',
+                        'waiting' => 'warning',
+                        'in_progress' => 'orange',
                         'completed' => 'success',
                         'cancelled' => 'danger',
                         default => 'gray',
                     }),
             ])
             ->actions([
-                Tables\Actions\Action::make('complete')
-                    ->label('완료')
-                    ->icon('heroicon-o-check')
-                    ->color('success')
-                    ->visible(fn (Treatment $record) => $record->status === 'reserved')
-                    ->action(fn (Treatment $record) => $record->update(['status' => 'completed'])),
-                Tables\Actions\Action::make('cancel')
-                    ->label('취소')
-                    ->icon('heroicon-o-x-mark')
-                    ->color('danger')
-                    ->visible(fn (Treatment $record) => $record->status !== 'cancelled')
-                    ->requiresConfirmation()
-                    ->action(fn (Treatment $record) => $record->update(['status' => 'cancelled'])),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('waiting')
+                        ->label('대기')
+                        ->icon('heroicon-o-clock')
+                        ->color('warning')
+                        ->visible(fn (Treatment $record) => $record->status === 'reserved')
+                        ->action(fn (Treatment $record) => $record->update(['status' => 'waiting'])),
+                    Tables\Actions\Action::make('start')
+                        ->label('시술 시작')
+                        ->icon('heroicon-o-play')
+                        ->color('orange')
+                        ->visible(fn (Treatment $record) => in_array($record->status, ['reserved', 'waiting']))
+                        ->action(fn (Treatment $record) => $record->update(['status' => 'in_progress'])),
+                    Tables\Actions\Action::make('complete')
+                        ->label('완료')
+                        ->icon('heroicon-o-check')
+                        ->color('success')
+                        ->visible(fn (Treatment $record) => in_array($record->status, ['waiting', 'in_progress']))
+                        ->action(fn (Treatment $record) => $record->update(['status' => 'completed'])),
+                    Tables\Actions\Action::make('cancel')
+                        ->label('취소')
+                        ->icon('heroicon-o-x-mark')
+                        ->color('danger')
+                        ->visible(fn (Treatment $record) => $record->status !== 'cancelled' && $record->status !== 'completed')
+                        ->requiresConfirmation()
+                        ->action(fn (Treatment $record) => $record->update(['status' => 'cancelled'])),
+                ])->button()->label('상태 변경'),
             ])
             ->emptyStateHeading('오늘 시술 내역이 없습니다')
             ->emptyStateDescription('위에서 시술을 등록해주세요')
             ->emptyStateIcon('heroicon-o-clipboard-document-list')
-            ->defaultSort('treatment_date', 'desc')
+            ->defaultSort('treatment_date', 'asc')
             ->poll('30s');
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Customer;
-use App\Models\Designer;
 use App\Models\Treatment;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -20,6 +19,24 @@ class StatsOverview extends BaseWidget
         $today = Carbon::today();
         $thisMonth = Carbon::now()->startOfMonth();
 
+        // 오늘 상태별 건수
+        $todayWaiting = Treatment::whereDate('treatment_date', $today)
+            ->where('status', 'waiting')
+            ->count();
+
+        $todayInProgress = Treatment::whereDate('treatment_date', $today)
+            ->where('status', 'in_progress')
+            ->count();
+
+        $todayCompleted = Treatment::whereDate('treatment_date', $today)
+            ->where('status', 'completed')
+            ->count();
+
+        $todayReserved = Treatment::whereDate('treatment_date', $today)
+            ->where('status', 'reserved')
+            ->count();
+
+        // 매출
         $todayRevenue = Treatment::where('status', 'completed')
             ->whereDate('treatment_date', $today)
             ->sum('price');
@@ -28,33 +45,31 @@ class StatsOverview extends BaseWidget
             ->where('treatment_date', '>=', $thisMonth)
             ->sum('price');
 
-        $todayTreatments = Treatment::whereDate('treatment_date', $today)->count();
-        $todayCompleted = Treatment::where('status', 'completed')
-            ->whereDate('treatment_date', $today)
-            ->count();
-
-        $totalCustomers = Customer::count();
-
         return [
-            Stat::make('오늘 매출', '₩' . number_format($todayRevenue))
-                ->description($todayCompleted . '건 완료')
+            Stat::make('대기', $todayWaiting . '명')
+                ->description('고객 대기중')
+                ->descriptionIcon('heroicon-m-clock')
+                ->color('warning'),
+
+            Stat::make('시술중', $todayInProgress . '명')
+                ->description('현재 시술')
+                ->descriptionIcon('heroicon-m-scissors')
+                ->color('info'),
+
+            Stat::make('완료', $todayCompleted . '건')
+                ->description('₩' . number_format($todayRevenue))
                 ->descriptionIcon('heroicon-m-check-circle')
                 ->color('success'),
 
-            Stat::make('이번 달 매출', '₩' . number_format($monthRevenue))
-                ->description(date('n') . '월 누적')
+            Stat::make('예약', $todayReserved . '건')
+                ->description('오늘 남은 예약')
                 ->descriptionIcon('heroicon-m-calendar')
-                ->color('primary'),
-
-            Stat::make('오늘 시술', $todayTreatments . '건')
-                ->description('예약 포함')
-                ->descriptionIcon('heroicon-m-scissors')
-                ->color('warning'),
-
-            Stat::make('전체 고객', number_format($totalCustomers) . '명')
-                ->description('등록된 고객')
-                ->descriptionIcon('heroicon-m-users')
                 ->color('gray'),
+
+            Stat::make('이번 달', '₩' . number_format($monthRevenue))
+                ->description(date('n') . '월 누적 매출')
+                ->descriptionIcon('heroicon-m-currency-dollar')
+                ->color('primary'),
         ];
     }
 }
