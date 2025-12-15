@@ -19,7 +19,7 @@ class TodayTreatments extends BaseWidget
 {
     protected static ?string $heading = '오늘 시술 현황';
 
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 3;
 
     protected int | string | array $columnSpan = 'full';
 
@@ -189,6 +189,27 @@ class TodayTreatments extends BaseWidget
                         default => 'gray',
                     }),
             ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('designer_id')
+                    ->label('디자이너')
+                    ->options(Designer::where('is_active', true)->pluck('name', 'id'))
+                    ->placeholder('전체 디자이너'),
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('상태')
+                    ->options([
+                        'reserved' => '예약',
+                        'waiting' => '대기',
+                        'in_progress' => '시술중',
+                        'completed' => '완료',
+                        'cancelled' => '취소',
+                    ])
+                    ->placeholder('전체 상태'),
+                Tables\Filters\SelectFilter::make('service_id')
+                    ->label('시술')
+                    ->relationship('service', 'name')
+                    ->placeholder('전체 시술'),
+            ])
+            ->filtersFormColumns(3)
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('waiting')
