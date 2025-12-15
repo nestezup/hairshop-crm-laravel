@@ -25,128 +25,6 @@ class TodayTreatments extends BaseWidget
 
     protected static ?string $pollingInterval = '30s';
 
-    protected function getTableHeaderActions(): array
-    {
-        return [
-            Tables\Actions\Action::make('create')
-                ->label('시술 등록')
-                ->icon('heroicon-o-plus')
-                ->color('primary')
-                ->modalHeading('시술 등록')
-                ->modalWidth('2xl')
-                ->form([
-                    Forms\Components\Grid::make(2)
-                        ->schema([
-                            Forms\Components\Toggle::make('is_new_customer')
-                                ->label('신규 고객')
-                                ->live()
-                                ->columnSpanFull(),
-
-                            Forms\Components\Select::make('customer_id')
-                                ->label('고객 선택')
-                                ->options(fn () => Customer::orderBy('name')->pluck('name', 'id'))
-                                ->searchable()
-                                ->preload()
-                                ->required(fn (Get $get) => !$get('is_new_customer'))
-                                ->visible(fn (Get $get) => !$get('is_new_customer')),
-
-                            Forms\Components\TextInput::make('new_customer_name')
-                                ->label('고객 이름')
-                                ->required(fn (Get $get) => $get('is_new_customer'))
-                                ->visible(fn (Get $get) => $get('is_new_customer')),
-
-                            Forms\Components\TextInput::make('new_customer_phone')
-                                ->label('전화번호')
-                                ->tel()
-                                ->placeholder('010-0000-0000')
-                                ->visible(fn (Get $get) => $get('is_new_customer')),
-
-                            Forms\Components\Select::make('designer_id')
-                                ->label('담당 디자이너')
-                                ->options(Designer::where('is_active', true)->pluck('name', 'id'))
-                                ->searchable()
-                                ->preload()
-                                ->required(),
-
-                            Forms\Components\Select::make('service_id')
-                                ->label('시술')
-                                ->options(Service::where('is_active', true)->pluck('name', 'id'))
-                                ->searchable()
-                                ->preload()
-                                ->required()
-                                ->live()
-                                ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
-                                    if ($state) {
-                                        $service = Service::find($state);
-                                        if ($service) {
-                                            $set('price', $service->price);
-                                        }
-                                    }
-                                }),
-
-                            Forms\Components\TextInput::make('price')
-                                ->label('금액')
-                                ->numeric()
-                                ->prefix('₩')
-                                ->required(),
-
-                            Forms\Components\Select::make('status')
-                                ->label('상태')
-                                ->options([
-                                    'waiting' => '대기',
-                                    'in_progress' => '시술중',
-                                    'completed' => '완료',
-                                    'reserved' => '예약',
-                                ])
-                                ->default('in_progress')
-                                ->required(),
-
-                            Forms\Components\DateTimePicker::make('treatment_date')
-                                ->label('시술 일시')
-                                ->default(now())
-                                ->required(),
-
-                            Forms\Components\TextInput::make('memo')
-                                ->label('메모')
-                                ->placeholder('선택사항')
-                                ->columnSpanFull(),
-                        ]),
-                ])
-                ->action(function (array $data): void {
-                    $customerId = $data['customer_id'] ?? null;
-
-                    // 신규 고객 처리
-                    if ($data['is_new_customer'] ?? false) {
-                        $customer = Customer::create([
-                            'name' => $data['new_customer_name'],
-                            'phone' => $data['new_customer_phone'] ?? null,
-                        ]);
-                        $customerId = $customer->id;
-
-                        Notification::make()
-                            ->title("신규 고객 \"{$customer->name}\"님 등록")
-                            ->info()
-                            ->send();
-                    }
-
-                    Treatment::create([
-                        'customer_id' => $customerId,
-                        'designer_id' => $data['designer_id'],
-                        'service_id' => $data['service_id'],
-                        'treatment_date' => $data['treatment_date'],
-                        'price' => $data['price'],
-                        'status' => $data['status'],
-                        'memo' => $data['memo'] ?? null,
-                    ]);
-
-                    Notification::make()
-                        ->title('시술이 등록되었습니다')
-                        ->success()
-                        ->send();
-                }),
-        ];
-    }
-
     public function table(Table $table): Table
     {
         return $table
@@ -155,6 +33,124 @@ class TodayTreatments extends BaseWidget
                     ->with(['customer', 'designer', 'service'])
                     ->whereDate('treatment_date', Carbon::today())
             )
+            ->headerActions([
+                Tables\Actions\Action::make('create')
+                    ->label('시술 등록')
+                    ->icon('heroicon-o-plus')
+                    ->color('primary')
+                    ->modalHeading('시술 등록')
+                    ->modalWidth('2xl')
+                    ->form([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Toggle::make('is_new_customer')
+                                    ->label('신규 고객')
+                                    ->live()
+                                    ->columnSpanFull(),
+
+                                Forms\Components\Select::make('customer_id')
+                                    ->label('고객 선택')
+                                    ->options(fn () => Customer::orderBy('name')->pluck('name', 'id'))
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(fn (Get $get) => !$get('is_new_customer'))
+                                    ->visible(fn (Get $get) => !$get('is_new_customer')),
+
+                                Forms\Components\TextInput::make('new_customer_name')
+                                    ->label('고객 이름')
+                                    ->required(fn (Get $get) => $get('is_new_customer'))
+                                    ->visible(fn (Get $get) => $get('is_new_customer')),
+
+                                Forms\Components\TextInput::make('new_customer_phone')
+                                    ->label('전화번호')
+                                    ->tel()
+                                    ->placeholder('010-0000-0000')
+                                    ->visible(fn (Get $get) => $get('is_new_customer')),
+
+                                Forms\Components\Select::make('designer_id')
+                                    ->label('담당 디자이너')
+                                    ->options(Designer::where('is_active', true)->pluck('name', 'id'))
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(),
+
+                                Forms\Components\Select::make('service_id')
+                                    ->label('시술')
+                                    ->options(Service::where('is_active', true)->pluck('name', 'id'))
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                                        if ($state) {
+                                            $service = Service::find($state);
+                                            if ($service) {
+                                                $set('price', $service->price);
+                                            }
+                                        }
+                                    }),
+
+                                Forms\Components\TextInput::make('price')
+                                    ->label('금액')
+                                    ->numeric()
+                                    ->prefix('₩')
+                                    ->required(),
+
+                                Forms\Components\Select::make('status')
+                                    ->label('상태')
+                                    ->options([
+                                        'waiting' => '대기',
+                                        'in_progress' => '시술중',
+                                        'completed' => '완료',
+                                        'reserved' => '예약',
+                                    ])
+                                    ->default('in_progress')
+                                    ->required(),
+
+                                Forms\Components\DateTimePicker::make('treatment_date')
+                                    ->label('시술 일시')
+                                    ->default(now())
+                                    ->required(),
+
+                                Forms\Components\TextInput::make('memo')
+                                    ->label('메모')
+                                    ->placeholder('선택사항')
+                                    ->columnSpanFull(),
+                            ]),
+                    ])
+                    ->action(function (array $data): void {
+                        $customerId = $data['customer_id'] ?? null;
+
+                        // 신규 고객 처리
+                        if ($data['is_new_customer'] ?? false) {
+                            $customer = Customer::create([
+                                'name' => $data['new_customer_name'],
+                                'phone' => $data['new_customer_phone'] ?? null,
+                            ]);
+                            $customerId = $customer->id;
+
+                            Notification::make()
+                                ->title("신규 고객 \"{$customer->name}\"님 등록")
+                                ->info()
+                                ->send();
+                        }
+
+                        Treatment::create([
+                            'customer_id' => $customerId,
+                            'designer_id' => $data['designer_id'],
+                            'service_id' => $data['service_id'],
+                            'treatment_date' => $data['treatment_date'],
+                            'price' => $data['price'],
+                            'status' => $data['status'],
+                            'memo' => $data['memo'] ?? null,
+                        ]);
+
+                        Notification::make()
+                            ->title('시술이 등록되었습니다')
+                            ->success()
+                            ->send();
+                    }),
+            ])
             ->columns([
                 Tables\Columns\TextColumn::make('treatment_date')
                     ->label('시간')
