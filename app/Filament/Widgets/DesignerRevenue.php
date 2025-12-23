@@ -64,11 +64,11 @@ class DesignerRevenue extends BaseWidget
                     ->label('직급')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        '원장' => 'danger',
-                        '시니어' => 'warning',
-                        '디자이너' => 'success',
-                        '주니어' => 'info',
-                        '인턴' => 'gray',
+                        '원장' => 'purple',
+                        '시니어' => 'info',
+                        '디자이너' => 'gray',
+                        '주니어' => 'teal',
+                        '인턴' => 'warning',
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('today_in_progress')

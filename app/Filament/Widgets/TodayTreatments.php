@@ -181,7 +181,7 @@ class TodayTreatments extends BaseWidget
                         default => $state,
                     })
                     ->color(fn (string $state): string => match ($state) {
-                        'reserved' => 'info',
+                        'reserved' => 'purple',
                         'waiting' => 'warning',
                         'in_progress' => 'primary',
                         'completed' => 'success',

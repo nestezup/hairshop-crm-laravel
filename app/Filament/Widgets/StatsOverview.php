@@ -64,7 +64,7 @@ class StatsOverview extends BaseWidget
             Stat::make('예약', $todayReserved . '건')
                 ->description('오늘 남은 예약')
                 ->descriptionIcon('heroicon-m-calendar')
-                ->color('gray'),
+                ->color('purple'),
 
             Stat::make('이번 달', '₩' . number_format($monthRevenue))
                 ->description(date('n') . '월 누적 매출')

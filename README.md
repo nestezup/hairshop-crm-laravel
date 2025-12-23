@@ -1,4 +1,25 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 💇‍♀️ Hairshop CRM (수업 데모 프로젝트)
+
+## 실행 방법 (How to Run)
+
+1. **코드 다운로드**
+   ```bash
+   git clone https://github.com/your-username/hairshop-crm.git
+   cd hairshop-crm
+   ```
+
+2. **환경 설정**
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **실행 (Docker & Sail)**
+   ```bash
+   ./vendor/bin/sail up -d
+   ./vendor/bin/sail npm run dev
+   ```
+
+## Project Description
 
 <p align="center">
 <a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
